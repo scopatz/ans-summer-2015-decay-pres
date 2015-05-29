@@ -288,6 +288,33 @@ N_{\lambda_C \to 0}(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{frame}{Method Derivation}
+
+    Modern processors are inherently binary.
+
+    \vspace*{1em}
+    Thus, naively computing $2^x$ is on average about 25\% faster than 
+    computing $e^x$ on most architectures.
+
+    \vspace*{1em}
+    Note: some processors come with a special instruction for computing 
+    $\exp(x)$ as fast (or faster) than $\exp2(x)$. Intel seems to do this with 
+    SSE2, when used at compile time.
+
+    \vspace*{1em}
+    Recasting the Bateman equations away from the natural exponent to base-2
+    yeilds a `binary' reformulation.
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Method Derivation}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section*{}
 \begin{frame}[fragile]{Questions?}
 
