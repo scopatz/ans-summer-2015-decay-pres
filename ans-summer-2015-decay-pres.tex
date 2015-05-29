@@ -145,21 +145,19 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{PyNE \cite{pyne}: what is it?}
-\begin{frame}{What is PyNE?}
+\section{Motivation}
+\begin{frame}{Motivation}
 
-    PyNE is \textcolor{dgreen}{the} open source nuclear engineering toolkit.
+    There are many situations in which the Bateman equations 
+    \cite{bateman1910solution} should be solved for decay channels only, 
+    rather than for genric transmutation:
+    
     \vspace*{1em}
     \begin{itemize}
-    \item PyNE is a \textcolor{dgreen}{library of composable tools} used to build
-    nuclear science and engineering applications
-    \item It is \textcolor{dgreen}{permissively licensed} (2-clause BSD)
-    \item It supports both a \textcolor{dgreen}{C++} and a \textcolor{dgreen}{Python} API
-    \item The name `PyNE' is a bit of a misnomer since most of the code
-    base is in C++ but most daily usage happens in Python
-    \item \textcolor{dgreen}{v0.4} is the current, stable release
-    \item As an organization, PyNE was born in April 2011
-    (however, core parts of PyNE have existed since 2007)
+        \item Non-reactor components of the nuclear fuel cycle (storage, 
+              disposition, transit)
+        \item Activation analysis
+        \item Dosage calculation
     \end{itemize}
 
 \end{frame}
