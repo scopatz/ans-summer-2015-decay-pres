@@ -311,6 +311,47 @@ N_{\lambda_C \to 0}(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod
 
 \begin{frame}{Method Derivation}
 
+    Define a precomputed constant $a_i$ as,
+
+    \begin{equation}
+    \label{a_i}
+    a_i = \frac{-1}{t_{1/2,i}}
+    \end{equation}
+
+    \vspace*{1em}
+    Thus, the final form of the binary representation of the Bateman equations 
+    are seen here:
+
+    \begin{equation}
+    \label{nc_wakka}
+    N_C(t) = N_1(0) \sum_{i=1}^C k_{i} \cdot 2^{a_i t}
+    \end{equation}
+
+    \vspace*{1em}
+    Every term in the sum is $O(3)$ and every operation is native to the 
+    instruction set.
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Method Derivation}
+
+    For first (parent) species in a chain:
+
+\begin{equation}
+\label{nc_jawakka}
+N_C(t) = N_1(0) \cdot 2^{a_1 t}
+\end{equation}
+
+    \vspace*{2em}
+    For last (stable child) species in a chain:
+
+\begin{equation}
+\label{nc_brown_shoes}
+N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 0}(k_{i}) \cdot 2^{a_i t} \right]
+\end{equation}
+
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
