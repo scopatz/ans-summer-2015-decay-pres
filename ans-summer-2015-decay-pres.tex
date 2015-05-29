@@ -129,7 +129,7 @@
 	    \begin{itemize}
         \item Motivation
         \item Method Derivation
-        \item Results
+        \item Implementation
 	    \end{itemize}
   	\end{column}
  	%
@@ -161,6 +161,7 @@
         \item Dosage calculation
     \end{itemize}
 
+    \vspace*{1em}
     Many solvers of the Bateman equations are not targeted to this reduced 
     use case.
 
@@ -356,6 +357,82 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\begin{frame}{Method Derivation}
+
+    \begin{itemize}
+        \item Relies on completely precomputed $k_i$ and $a_i$.
+        \item No I/O since constants are compiled into implementation.
+        \item Preserves all physical processes since no assumptions were made 
+              aside from the Bateman equations.
+        \item Not possible to further reduce number of operations analytically.
+    \end{itemize}
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Implementation}
+
+    A refernece implmentation of this method is available through the pyne 
+    library \cite{pyne}.
+
+    \vspace*{1em}
+    Cyclus \cite{cyclus2015} uses this implementation for nuclear fuel cycle 
+    simulation.
+
+    \vspace*{1em}
+    Even this implmentation was forced to make certain assumptions in the 
+    face of floating point arithmetic for reasons of
+    performance, compile-ability, and computability.
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Implementation Assumptions}
+
+    Spontaneous fission chains are not tallied as they 
+    lead to an explosion of the total number of chains while contributing to 
+    extraordinarily rare branches. For most species the relative error
+    induced is $O(<10^{-8})$.  Relatively few and rare nuclides, such as Cm-250, 
+    have spontaneous fission branch greater than 5\%.
+
+    \vspace*{1em}
+    Decay alphas are not treated as He-4 production.  This can lead to 
+    errors that are less than 2\% of the total mass of all chains for a
+    nuclide.  
+
+    \vspace*{1em}
+    To prevent other sources of floating point error, a nuclide is 
+    determined to be stable when $\lambda_i < 10^{-16}$, rather than when 
+    $\lambda_i = 0.0$.
+
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Implementation Assumptions}
+
+    \vspace*{1em}
+    For chains longer than length 2, any 
+    term whose half-life is less than $10^{-8}$ of the sum of all 
+    half-lives in the chain is dropped. This filtering prevents excessive
+    calculation from species which do not significantly contribute to 
+    end atom fractions. If the filtering causes there to be less than 
+    two terms in the summation, then the filtering is turned off and all
+    terms are computed.
+
+    \vspace*{1em}
+    If a chain has any $\mathrm{NaN}$ decay constants, the chain is rejected.
+
+    \vspace*{1em}
+    If a chain has any infinite $k$ values, the chain is rejected.
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section*{}
 \begin{frame}[fragile]{Questions?}
 
@@ -374,129 +451,6 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
 
 \begin{comment}
 
-\section{Binary Reformulation of Bateman Equations}
-\label{bin}
-There are two main strategies that may be used to construct a version of the 
-Bateman equations that is better suited to computation, if not clarity. 
-
-The first strategy is to minimize the number of arithmetic
-operations that must be performed to achieve the same result. 
-This is a sub-problem of common sub-expression elimination (CSE) 
-\cite{Cocke:1970:GCS:390013.808480}
-that is implemented in modern optimizing compilers \cite{steven1997advanced}.
-This can be done by grouping constants together and pre-calculating the 
-result as its own derived constant. This saves the 
-computer from having to perform these same arithmetic operations at run time.  
-By grouping constants, it is possible to express the Bateman equations as a 
-simple sum of exponentials, as seen in Equation \ref{N_C_bin}.
-
-\begin{equation}
-\label{N_C_bin}
-N_C(t) = N_1(0) \sum_{i=1}^C k_{i} e^{-\lambda_i t}
-\end{equation}
-
-In Equation \ref{N_C_bin}, the coefficients $k_i$ are defined as follows:
-
-\begin{equation}
-\label{k_i}
-k_i = \frac{\gamma}{\lambda_C} \lambda_i c_i
-\end{equation}
-
-If $k_i$ are computed at run time then this formulation results in much 
-more computational effort that than the original Bateman equations. This is 
-because the $\gamma/\lambda_C$ term is brought into the top-level summation 
-in Equation \ref{N_C_bin}. This would increase the number of operations in the 
-sum by $C$ to a total of $4C+1$, up from $3C+1$.
-However, when the $k_i$s  are pre-calculated, 
-the number of arithmetic operations for each term in the sum is a mere 4.
-It is no longer a function of the length of the chain $C$ at all.  This is 
-because explicitly computing $c_i$ and $\gamma$ has been completely avoided.
-Note that even for the shortest non-stable species, this computation is 
-equivalently expensive as the normal Bateman equations, namely 4 operations.
-Thus even in the worst case, the binary formulation performs just as well.
-
-The second strategy is to note that computers are much better at dealing 
-with powers of 2 than any other base, even the natural base $e$. Thus the 
-$\mathrm{exp2}(x)$ function, or $2^x$, is faster than the natural exponential 
-function $\exp(x)$, $e^x$.  This is due to the number of floating point
-operations performed in the implementation of the underlying exponential 
-functions. As proof of this principle, the following simple timing results
-demonstrate that $\mathrm{exp2}(x)$ is faster for random data:
-
-\begin{lstlisting}[caption={Exponential Timing Comparison}, 
-                   label=expcmp]
-In [1]: import numpy as np
-
-In [2]: r = np.random.random(1000) / np.random.random(1000)
-
-In [3]: %timeit np.exp(r)
-10000 loops, best of 3: 26.6 us per loop
-
-In [4]: %timeit np.exp2(r)
-10000 loops, best of 3: 20.1 us per loop
-\end{lstlisting}
-
-From here, $\mathrm{exp2}(x)$ enables a savings of about 25\% over 
-$\exp(x)$. Note that this improvement is highly compiler and machine dependent.
-However, since the core of the Bateman equations are exponentials, 
-such a savings has the ability to reach all portions of a decay calculation.
-Luckily, the decay constant itself provides an intrinsic mechanism to convert 
-from base-e to base-2, as seen in the following equations:
-
-\begin{equation}
-\label{b2-0}
-N_C(t) = N_1(0) \sum_{i=1}^C k_{i} \cdot e^{-\lambda_i t}
-\end{equation}
-
-\begin{equation}
-\label{b2-1}
-N_C(t) = N_1(0) \sum_{i=1}^C k_{i} \cdot \exp\left[\frac{-\ln(2)\cdot t}{t_{1/2,i}}\right]
-\end{equation}
-
-\begin{equation}
-\label{b2-2}
-N_C(t) = N_1(0) \sum_{i=1}^C k_{i} \cdot \mathrm{exp2}\left[\frac{-t}{t_{1/2,i}}\right]
-\end{equation}
-
-Equation \ref{b2-2} can be further collapsed by defining the constants $a$ to 
-be the pre-computed exponent coefficient values:
-
-\begin{equation}
-\label{a_i}
-a_i = \frac{-1}{t_{1/2,i}}
-\end{equation}
-
-Thus, the final form of the binary representation of the Bateman equations 
-are shown in Equations \ref{nc_wakka}-\ref{nc_brown_shoes}:
-
-\textbf{General Formulation:}
-
-\begin{equation}
-\label{nc_wakka}
-N_C(t) = N_1(0) \sum_{i=1}^C k_{i} \cdot 2^{a_i t}
-\end{equation}
-
-\textbf{First Nuclide in Chain:}
-
-\begin{equation}
-\label{nc_jawakka}
-N_C(t) = N_1(0) \cdot 2^{a_1 t}
-\end{equation}
-
-\textbf{Stable Nuclide:}
-
-\begin{equation}
-\label{nc_brown_shoes}
-N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 0}(k_{i}) \cdot 2^{a_i t} \right]
-\end{equation}
-
-With completely precomputed $k$, $a$, and the $\mathrm{exp2}()$ function, this 
-formulation reduces the number of arithmetic operations to 3 for each term 
-in the chain. Furthermore, it completely preserves all physical processes 
-because no assumptions were made aside from the Bateman equations themselves.
-Note that it is not possible to reduce the number of operations further
-without assuming a value for $t$. Thus, this representation is the 
-mathematically fastest formulation of the Bateman equations.
 
 \section{Implementation Specific Approximations}
 \label{approx}
