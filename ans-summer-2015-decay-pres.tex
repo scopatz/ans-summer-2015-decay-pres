@@ -240,6 +240,29 @@ $\gamma$    & total branch ratio for this chain\\
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Canonical Bateman Equations for Decay}
+
+    For first (parent) species in a chain:
+
+\begin{equation}
+\label{N_C}
+N_C(t) = N_1(0) e^{-\lambda_1 t}
+\end{equation}
+
+    \vspace*{2em}
+    For last (child) species in a chain:
+
+\begin{equation}
+\label{lim_lam_N_C}
+N_{\lambda_C \to 0}(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod_{j=1,i\ne j}^{C-1} \frac{\lambda_j}{\lambda_j - \lambda_i} \right) e^{-\lambda_i t} \right]
+\end{equation}
+
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section*{}
 \begin{frame}[fragile]{Questions?}
 
