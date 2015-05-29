@@ -6,6 +6,7 @@
 \usepackage{Tabbing}
 \usetikzlibrary{decorations.fractals}
 \usepackage{fancyvrb}
+\usepackage{verbatim}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Beamer Layout %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -199,8 +200,42 @@
     implementations. 
 
     \vspace*{1em}
-    Such a solver will have reduced algorithimic error steming from fewer 
+    Such a solver will have reduced algorithimic error stemming from fewer 
     FLOPS.
+    
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Canonical Bateman Equations for Decay}
+
+\begin{equation}
+\label{bm-eq}
+N_C(t) = \frac{N_1(0)}{\lambda_C} \cdot \gamma \cdot \sum_{i=1}^C \lambda_i c_{i} e^{-\lambda_i t}
+\end{equation}
+
+\begin{equation}
+\label{c_i}
+c_i = \prod_{j=1,i\ne j}^C \frac{\lambda_j}{\lambda_j - \lambda_i}
+\end{equation}
+
+\begin{table}[hbt]
+\label{decay-symbol-meaning}
+%\caption{Symbol Meaning in Decay Equations}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Symbol} & \textbf{Meaning} \\
+\hline
+$C$         & length of the decay chain\\
+$i$         & index for ith species, on range [1, C]\\
+$j$         & index for jth species, on range [1, C]\\
+$t$         & time [seconds]\\
+$N_i(t)$    & number density of the ith species at time t\\
+$t_{1/2,i}$ & half-life of the ith species\\
+$\lambda_i$ & decay constant of ith species, $\ln(2)/t_{1/2,i}$\\
+$\gamma$    & total branch ratio for this chain\\
+\hline
+\end{tabular}
+\end{table}
     
 \end{frame}
 
@@ -220,4 +255,369 @@
     \bibliography{ans.bib}
 \end{frame}
 
+
+\begin{comment}
+\section{Introduction}
+
+The Bateman equations \cite{bateman1910solution} governing radioactive decay 
+are an important 
+subexpression of the generalized transmutation equations. In many cases, it is 
+desirable to compute decay on its own, outside of the presence of a neutron 
+or photon field.  In this case, radioactive decay is a function solely 
+dependent on 
+intrinsic physical parameters, namely half-lives. This document recasts the 
+Bateman equations into a form that is better suited for computation than the 
+traditional expression, whose naive implementation involves the 
+recomputation of many common terms.
+
+This use case is particularly relevant to the study of the nuclear fuel 
+cycle (NFC). While reactors are a critical component of most NFCs, there 
+are many places in the cycle where fresh and used fuel is sitting outside 
+of a core. In these cases, decay alone is needed. Full transmutation 
+calculations require excessive computational effort when simply trying to 
+model a storage facility. Thus, an efficient decay calculator has the 
+potential to speed up simulation of the entire NFC.
+
+Here, the traditional Bateman decay equations have been reformulated to 
+an expression that is more suited for binary computation. Coupled with a 
+novel code generation technique, this binary formulation provides 
+dramatic speed increases in a modern computing environment. 
+
+Notably, all of the software implemented for the decay calculation is 
+available as part of the free \& open source PyNE library 
+\cite{pyne2014,Bates2014}. Furthermore, this decay functionality has
+been fully integrated into the \cyclus fuel cycle simulator
+\cite{cyclus2015,cyclus_v1.2}.
+
+This paper will start by reviewing the classic version of the Bateman 
+equations in \S II before providing the desired departure from 
+this form in \S III. Following this, implementation specific 
+approximations are discussed in \S IV.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Canonical Bateman Equations for Decay}
+\label{canon}
+The canonical expression of the Bateman equations for a decay chain 
+proceeding from a nuclide $A$ to a nuclide $Z$ at time 
+$t$ following a specific path is as follows \cite{Cetnar2006640}:
+
+\begin{equation}
+\label{bm-eq}
+N_C(t) = \frac{N_1(0)}{\lambda_C} \cdot \gamma \cdot \sum_{i=1}^C \lambda_i c_{i} e^{-\lambda_i t}
+\end{equation}
+
+\begin{table}[hbt]
+\label{decay-symbol-meaning}
+\caption{Symbol Meaning in Decay Equations}
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Symbol} & \textbf{Meaning} \\
+\hline
+$C$         & length of the decay chain\\
+$i$         & index for ith species, on range [1, C]\\
+$j$         & index for jth species, on range [1, C]\\
+$t$         & time [seconds]\\
+$N_i(t)$    & number density of the ith species at time t\\
+$t_{1/2,i}$ & half-life of the ith species\\
+$\lambda_i$ & decay constant of ith species, $ln(2)/t_{1/2,i}$\\
+$\gamma$    & total branch ratio for this chain\\
+\hline
+\end{tabular}
+\end{table}
+
+The symbols in Equation \ref{bm-eq} have the meaning described in Table I.
+Additionally, $c_{i}$ is defined as:
+\begin{equation}
+\label{c_i}
+c_i = \prod_{j=1,i\ne j}^C \frac{\lambda_j}{\lambda_j - \lambda_i}
+\end{equation}
+Furthermore, the total chain branch ratio is defined as the product of the 
+branch ratios between any two species in the chain \cite{harr2007precise}:
+
+\begin{equation}
+\label{gamma}
+\gamma = \prod_{i=1}^{C-1} \gamma_{i \to i+1}
+\end{equation}
+
+Minor modifications are needed to Equation \ref{bm-eq} for terminal species: 
+the first nuclide of a decay chain and the ending stable species. By setting 
+$C=1$ for the first nuclide in a chain, the Bateman equations can be reduced 
+to simply:%perhaps "the familiar" instead but it's also a bit colloquial
+
+\begin{equation}
+\label{N_C}
+N_C(t) = N_1(0) e^{-\lambda_1 t}
+\end{equation}
+
+For stable species at the end of a chain, the appropriate equation is derived 
+by taking the limit of when the decay constant of the stable nuclide 
+($\lambda_C$) goes to zero.  Notice that in Equation \ref{c_i} that every $c_i$ contains exactly one $\lambda_C$
+in the numerator which cancels with the $\lambda_C$ in the denominator 
+in front of the summation in Equation \ref{bm-eq}. This leads to the following form 
+for the calculation of the terminal species:
+
+\begin{equation}
+\label{lim_lam}
+\lim_{\lambda_C \to 0} N_C(t) = N_1(0)  \gamma \left[e^{-0t} + \sum_{i=1}^{C-1} \lambda_i \left(\frac{1}{0 - \lambda_i} \prod_{j=1,i\ne j}^{C-1} \frac{\lambda_j}{\lambda_j - \lambda_i} \right) e^{-\lambda_i t} \right]
+\end{equation}
+
+\begin{equation}
+\label{lim_lam_N_C}
+N_{\lambda_C \to 0}(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod_{j=1,i\ne j}^{C-1} \frac{\lambda_j}{\lambda_j - \lambda_i} \right) e^{-\lambda_i t} \right]
+\end{equation}
+
+Thus, Equations \ref{bm-eq}, \ref{N_C}, \& \ref{lim_lam_N_C} together are
+able to compute the concentration of any species under decay 
+at any point in time.
+
+\section{Binary Reformulation of Bateman Equations}
+\label{bin}
+There are two main strategies that may be used to construct a version of the 
+Bateman equations that is better suited to computation, if not clarity. 
+
+The first strategy is to minimize the number of arithmetic
+operations that must be performed to achieve the same result. 
+This is a sub-problem of common sub-expression elimination (CSE) 
+\cite{Cocke:1970:GCS:390013.808480}
+that is implemented in modern optimizing compilers \cite{steven1997advanced}.
+This can be done by grouping constants together and pre-calculating the 
+result as its own derived constant. This saves the 
+computer from having to perform these same arithmetic operations at run time.  
+By grouping constants, it is possible to express the Bateman equations as a 
+simple sum of exponentials, as seen in Equation \ref{N_C_bin}.
+
+\begin{equation}
+\label{N_C_bin}
+N_C(t) = N_1(0) \sum_{i=1}^C k_{i} e^{-\lambda_i t}
+\end{equation}
+
+In Equation \ref{N_C_bin}, the coefficients $k_i$ are defined as follows:
+
+\begin{equation}
+\label{k_i}
+k_i = \frac{\gamma}{\lambda_C} \lambda_i c_i
+\end{equation}
+
+If $k_i$ are computed at run time then this formulation results in much 
+more computational effort that than the original Bateman equations. This is 
+because the $\gamma/\lambda_C$ term is brought into the top-level summation 
+in Equation \ref{N_C_bin}. This would increase the number of operations in the 
+sum by $C$ to a total of $4C+1$, up from $3C+1$.
+However, when the $k_i$s  are pre-calculated, 
+the number of arithmetic operations for each term in the sum is a mere 4.
+It is no longer a function of the length of the chain $C$ at all.  This is 
+because explicitly computing $c_i$ and $\gamma$ has been completely avoided.
+Note that even for the shortest non-stable species, this computation is 
+equivalently expensive as the normal Bateman equations, namely 4 operations.
+Thus even in the worst case, the binary formulation performs just as well.
+
+The second strategy is to note that computers are much better at dealing 
+with powers of 2 than any other base, even the natural base $e$. Thus the 
+$\mathrm{exp2}(x)$ function, or $2^x$, is faster than the natural exponential 
+function $\exp(x)$, $e^x$.  This is due to the number of floating point
+operations performed in the implementation of the underlying exponential 
+functions. As proof of this principle, the following simple timing results
+demonstrate that $\mathrm{exp2}(x)$ is faster for random data:
+
+\begin{lstlisting}[caption={Exponential Timing Comparison}, 
+                   label=expcmp]
+In [1]: import numpy as np
+
+In [2]: r = np.random.random(1000) / np.random.random(1000)
+
+In [3]: %timeit np.exp(r)
+10000 loops, best of 3: 26.6 us per loop
+
+In [4]: %timeit np.exp2(r)
+10000 loops, best of 3: 20.1 us per loop
+\end{lstlisting}
+
+From here, $\mathrm{exp2}(x)$ enables a savings of about 25\% over 
+$\exp(x)$. Note that this improvement is highly compiler and machine dependent.
+However, since the core of the Bateman equations are exponentials, 
+such a savings has the ability to reach all portions of a decay calculation.
+Luckily, the decay constant itself provides an intrinsic mechanism to convert 
+from base-e to base-2, as seen in the following equations:
+
+\begin{equation}
+\label{b2-0}
+N_C(t) = N_1(0) \sum_{i=1}^C k_{i} \cdot e^{-\lambda_i t}
+\end{equation}
+
+\begin{equation}
+\label{b2-1}
+N_C(t) = N_1(0) \sum_{i=1}^C k_{i} \cdot \exp\left[\frac{-\ln(2)\cdot t}{t_{1/2,i}}\right]
+\end{equation}
+
+\begin{equation}
+\label{b2-2}
+N_C(t) = N_1(0) \sum_{i=1}^C k_{i} \cdot \mathrm{exp2}\left[\frac{-t}{t_{1/2,i}}\right]
+\end{equation}
+
+Equation \ref{b2-2} can be further collapsed by defining the constants $a$ to 
+be the pre-computed exponent coefficient values:
+
+\begin{equation}
+\label{a_i}
+a_i = \frac{-1}{t_{1/2,i}}
+\end{equation}
+
+Thus, the final form of the binary representation of the Bateman equations 
+are shown in Equations \ref{nc_wakka}-\ref{nc_brown_shoes}:
+
+\textbf{General Formulation:}
+
+\begin{equation}
+\label{nc_wakka}
+N_C(t) = N_1(0) \sum_{i=1}^C k_{i} \cdot 2^{a_i t}
+\end{equation}
+
+\textbf{First Nuclide in Chain:}
+
+\begin{equation}
+\label{nc_jawakka}
+N_C(t) = N_1(0) \cdot 2^{a_1 t}
+\end{equation}
+
+\textbf{Stable Nuclide:}
+
+\begin{equation}
+\label{nc_brown_shoes}
+N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 0}(k_{i}) \cdot 2^{a_i t} \right]
+\end{equation}
+
+With completely precomputed $k$, $a$, and the $\mathrm{exp2}()$ function, this 
+formulation reduces the number of arithmetic operations to 3 for each term 
+in the chain. Furthermore, it completely preserves all physical processes 
+because no assumptions were made aside from the Bateman equations themselves.
+Note that it is not possible to reduce the number of operations further
+without assuming a value for $t$. Thus, this representation is the 
+mathematically fastest formulation of the Bateman equations.
+
+\section{Implementation Specific Approximations}
+\label{approx}
+The method presented in the previous section has been implemented within
+PyNE and Cyclus. However, any given mathematical system of equations
+will encounter implementation-specific choices when turned into 
+associated software. Thus, though the above formulation holds generally for 
+any decay chain, certain approximations have been used in the implementation
+for reasons of performance, compile-ability, and computability.
+The PyNE implementation generally aims to reduce the number of 
+chains and terms that are calculated when they can be shown to be 
+redundant or insignificant to the total calculation. In specific, the 
+following modeling assumptions have been made:
+
+\begin{enumerate}
+\item Decay chains coming from spontaneous fission are not tallied as they 
+    lead to an explosion of the total number of chains while contributing to 
+    extraordinarily rare branches. For most species the relative error
+    induced by this approximation is on the order of floating-point precision
+    ($<10^-8$).  Only for relatively few and rare nuclides, such as Cm-250, 
+    is the spontaneous fission branch ratio greater than 5\%.
+\item Decay alphas are not treated as He-4 production.  This can lead to 
+    errors that are less than 2\% of the total mass of all chains for a
+    nuclide.  For example, Pu-239 that is fully decayed into only stable 
+    species would have less than 15\% of the original mass converted into 
+    He-4 via alpha decay.  In realistic systems with much shorter time 
+    horizons, this relative error is much smaller.  
+\item For chains longer than length 2, any 
+    term whose half-life is less than $10^{-8}$ of the sum of all 
+    half-lives in the chain is dropped. This filtering prevents excessive
+    calculation from species which do not significantly contribute to 
+    end atom fractions. The relative threshold $10^{-8}$ was chosen
+    because it is a reasonable naive estimate of floating point error after 
+    many operations. If the filtering causes there to be less than 
+    two terms in the summation, then the filtering is turned off and all
+    terms are computed.
+\item To prevent other sources of floating point error, a nuclide is 
+    determined to be stable when $\lambda_i < 10^{-16}$, rather than when 
+    $\lambda_i = 0.0$.
+\item If a chain has any $\mathrm{NaN}$ decay constants, the chain is rejected.
+\item If a chain has any infinite $k$ values, the chain is rejected.
+\end{enumerate}
+
+In principle, each of these statements is reasonable. However, they may 
+have covariant effects that inject unreasonable errors into the system.
+To ensure that this is not the case for the assumptions above, 
+a preliminary benchmark study was performed \cite{benchmark}. This benchmark 
+compared
+the results of running ORIGEN v2.2 \cite{croff1980origen2} to the results of 
+the binary formulation. This study compared 2811 cases for a wide spread of
+nuclides over 0.01, 0.1, 1.0, 10, 100 times the half-life of the nuclide.
+In the overwhelming majority of cases, the relative errors were found to be 
+within acceptable bounds. Take $x$ as the mass of a species in a material 
+after decay in the binary formulation, and $y$ as the mass of the same species
+decayed via ORIGEN, then the relative error $\epsilon$ is computed as:
+\begin{equation}
+\epsilon = \frac{2 \cdot |x - y|}{x + y}
+\end{equation}
+For a given nuclide to pass the decay benchmark here, 
+the species present in the decayed result must meet the following criteria:
+\begin{enumerate}
+    \item The highest relative error of any species in the decay result is
+          less than 1\%, or
+
+    \item If the species has a relative error greater than 1\%, then the 
+          decayed mass of the species multiplied by the relative error
+          (the mass-weighted relative error) is less than 10\%.
+\end{enumerate}
+  
+For cases that did demonstrate significant differences in the benchmark, 
+the differences could all be traced back to discrepancies in the underling 
+data. Since the PyNE binary formulation uses more recent ENSDF decay 
+data \cite{bhat1992evaluated} and computes more decay chains than ORIGEN, 
+it is reasonable to assume that these discrepancies are not the fault of the 
+binary formulation or the implementation assumptions.
+
+It is also important to mention that these implementation assumptions 
+may preclude desired behavior by users. For example, perhaps alpha decay 
+should be considered He-4 production. This would bring the implementation in
+line with the same feature in ORIGEN v2.2. In such a situation, these 
+assumptions should be revisited and the implementation should be reworked.
+
+\section{Comparison to ORIGEN implementation}
+
+The implementation of decay calculations in ORIGEN follows a fundamentally 
+different strategy from the one described above. It uses Taylor series expansion 
+of the exponential decay to make the problem tractable
+and then uses run-time branches to make a set of further approximations similar
+to those described above. This is due to both the increased scope of the 
+problem being solved, transmutation and decay, as well as the design which
+treats the decay data and the algorithm as two separate entities. The 
+combination of modern computational tools, allowing for efficient generation of 
+code, and the existing PyNE decay data interface, with rapid access to up-to-date ENSDF
+decay data, enable a merging of the two components and a reduction in computational
+cost at run-time with a manageable computation cost at compile (less than 30 seconds on
+a modern laptop). 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Conclusions \& Future Work}
+
+Many different computational solutions to the Bateman equations have been 
+developed, but few have been focused on optimizing the solution for speed
+of implementation without significant approximation of the initial problem.
+ The ability to have algorithmically 
+generated code makes it possible to generate a solution that is both 
+computationally efficient and that minimizes mathematical approximations. This 
+work demonstrates such an implementation and shows promising initial results
+in comparison to existing tools. It is also unique in that the code requires no
+run time access to nuclear data as it is all integrated into the compilation 
+process. This results in a single portable C++ file with header that can be 
+used in NFC tools for decay calculations. Future work will consist of a more 
+detailed benchmark
+comparison against existing tools and work to quantify the errors introduced by
+the approximations used and those due to other effects such as round-off errors. 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%\section{Acknowledgments}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bibliographystyle{ans}
+\bibliography{bibliography}
 \end{document}
+
+\end{comment}
+
+\end{document}
+
+
+
