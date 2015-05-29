@@ -160,6 +160,32 @@
         \item Dosage calculation
     \end{itemize}
 
+    Many solvers of the Bateman equations are not targeted to this reduced 
+    use case.
+
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{frame}{Motivation}
+
+    Bateman equations solvers for decay-only calculations can be slow because:
+    
+    \vspace*{1em}
+    \begin{itemize}
+        \item They perform a full transmutation calculation but with zero
+              neutron flux.
+        \item They read in data libraries from disk each calculation.
+        \item Perform excess floating-point calculations even for decay
+              chanels, which also add algorithimc error.
+    \end{itemize}
+
+    For example, ORIGEN v2.2 for decay is O($\approx 1$ sec), most of which is
+    I/O.
+
+    \vspace*{1em}
+    This does not scale well to large systems, such a fuel cycle with 70k 
+    fuel assemblies or reactor dose calculations with 50k volume elements.
+
 \end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
