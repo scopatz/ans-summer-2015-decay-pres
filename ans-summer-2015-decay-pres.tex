@@ -7,6 +7,7 @@
 \usetikzlibrary{decorations.fractals}
 \usepackage{fancyvrb}
 \usepackage{verbatim}
+%\usepackage{booktabs}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% Beamer Layout %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -520,12 +521,44 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
     stems from discrepencies in branch ratios between ORIGEN and ENSDF.
 
     \vspace*{1em}
+    High relative errors are also sometimes caused by discrepencies in the 
+    half-lives of the children.
+
+    \vspace*{1em}
     In all cases, the mass of the child times its relative error is small.
-    This 
-    
+    This mass-weighted relative error, $w$,  indicates that the total impact 
+    on the decay calculation is small.
+
+    \vspace*{1em}
+    Outliers are therefore an issue with data and precision rather than 
+    an indictment of the binary formulation.
 
 \end{frame}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Comparison to ORIGEN - In-114 Outlier}
+
+    Differences in relative error come from differening branch ratios.
+
+    \begin{center}
+    \begin{tabular}{rrrrr}
+    \hline
+ $t$ [sec] & $\epsilon$, rel. err. &      child &  childmass &  $w$, weighted err. \\
+\hline
+     0.719 &  0.029356 &  Sn-114 &   0.006873 &     0.000202 \\
+     7.190 &  1.483651 &  Cd-114 &   0.002259 &     0.003352 \\
+    71.900 &  1.483744 &  Cd-114 &   0.016870 &     0.025031 \\
+   719.000 &  1.483783 &  Cd-114 &   0.033710 &     0.050018 \\
+  7190.000 &  1.483744 &  Cd-114 &   0.033740 &     0.050062 \\
+    \hline
+    \end{tabular}
+    \end{center}
+
+    \vspace*{1em}
+    Mass weighted errors remain small here even when relative error is large.
+
+\end{frame}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
