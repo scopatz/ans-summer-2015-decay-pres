@@ -469,10 +469,12 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
     \end{equation}
 
     \vspace*{1em}
-    \textbf{Experiment:} Decay a unit mass of a nuclide whose half-lives 
+    \textbf{Experiment:} Decay a unit mass of a parent
+    nuclide whose half-lives 
     in ORIGEN and ENSDF match to within the precision given in the ORIGEN 
     library. Run this decay  for 0.01, 0.1, 1.0, 10, 100 times the half-life 
-    of the nuclide. Compare the relative errors.
+    of the nuclide. Compare the relative errors and take the maximun relative
+    error for all children.
 
     \vspace*{1em}
     This generated 2802 nuclide/decay time cases that are on a common basis.
@@ -509,6 +511,21 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
     \textbf{Note:} log-log scale to accentuate differences.
 
 \end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{frame}{Comparison to ORIGEN - Outliers}
+
+    Outliers with high relative error in one of their children almost always
+    stems from discrepencies in branch ratios between ORIGEN and ENSDF.
+
+    \vspace*{1em}
+    In all cases, the mass of the child times its relative error is small.
+    This 
+    
+
+\end{frame}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
