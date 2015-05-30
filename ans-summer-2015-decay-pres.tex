@@ -152,7 +152,7 @@
 
     There are many situations in which the Bateman equations 
     \cite{bateman1910solution} should be solved for decay channels only, 
-    rather than for genric transmutation:
+    rather than for generic transmutation:
     
     \vspace*{1em}
     \begin{itemize}
@@ -179,7 +179,7 @@
               neutron flux.
         \item They read in data libraries from disk each calculation.
         \item Perform excess floating-point calculations even for decay
-              chanels, which also add algorithimc error.
+              channels, which also add algorithmic error.
     \end{itemize}
 
     For example, ORIGEN v2.2 \cite{croff1980origen2} for decay is 
@@ -198,11 +198,11 @@
 
     \vspace*{3em}
     Create a decay-only solver for the Bateman equations 
-    that is much faster mathematically and algorithimically than current 
+    that is much faster mathematically and algorithmically than current 
     implementations. 
 
     \vspace*{1em}
-    Such a solver will have reduced algorithimic error stemming from fewer 
+    Such a solver will have reduced algorithmic error stemming from fewer 
     FLOPS.
     
 \end{frame}
@@ -305,7 +305,7 @@ N_{\lambda_C \to 0}(t) = N_1(0)  \gamma \left[1.0 - \sum_{i=1}^{C-1} \left(\prod
 
     \vspace*{1em}
     Recasting the Bateman equations away from the natural exponent to base-2
-    yeilds a `binary' reformulation.
+    yields a `binary' reformulation.
 
 \end{frame}
 
@@ -374,7 +374,7 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
 
 \begin{frame}{Implementation}
 
-    A refernece implmentation of this method is available through the pyne 
+    A reference implementation of this method is available through the pyne 
     library \cite{pyne}.
 
     \vspace*{1em}
@@ -382,7 +382,7 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
     simulation.
 
     \vspace*{1em}
-    Even this implmentation was forced to make certain assumptions in the 
+    Even this implementation was forced to make certain assumptions in the 
     face of floating point arithmetic for reasons of
     performance, compile-ability, and computability.
 
@@ -474,7 +474,7 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
     nuclide whose half-lives 
     in ORIGEN and ENSDF match to within the precision given in the ORIGEN 
     library. Run this decay  for 0.01, 0.1, 1.0, 10, 100 times the half-life 
-    of the nuclide. Compare the relative errors and take the maximun relative
+    of the nuclide. Compare the relative errors and take the maximum relative
     error for all children.
 
     \vspace*{1em}
@@ -518,10 +518,10 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
 \begin{frame}{Comparison to ORIGEN - Outliers}
 
     Outliers with high relative error in one of their children almost always
-    stems from discrepencies in branch ratios between ORIGEN and ENSDF.
+    stems from discrepancies in branch ratios between ORIGEN and ENSDF.
 
     \vspace*{1em}
-    High relative errors are also sometimes caused by discrepencies in the 
+    High relative errors are also sometimes caused by discrepancies in the 
     half-lives of the children.
 
     \vspace*{1em}
@@ -539,12 +539,12 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
 
 \begin{frame}{Comparison to ORIGEN - In-114 Outlier}
 
-    Differences in relative error come from differening branch ratios.
+    Differences in relative error come from differing branch ratios.
 
     \begin{center}
     \begin{tabular}{rrrrr}
     \hline
- $t$ [sec] & $\epsilon$, rel. err. &      child &  childmass &  $w$, weighted err. \\
+ $t$ [sec] & $\epsilon$, rel. err. &      child & child mass &  $w$, weighted err. \\
 \hline
      0.719 &  0.029356 &  Sn-114 &   0.006873 &     0.000202 \\
      7.190 &  1.483651 &  Cd-114 &   0.002259 &     0.003352 \\
@@ -576,106 +576,6 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
 	\bibliographystyle{unsrt}
     \bibliography{ans.bib}
 \end{frame}
-
-
-\begin{comment}
-
-
-\section{Implementation Specific Approximations}
-\label{approx}
-The method presented in the previous section has been implemented within
-PyNE and Cyclus. However, any given mathematical system of equations
-will encounter implementation-specific choices when turned into 
-associated software. Thus, though the above formulation holds generally for 
-any decay chain, certain approximations have been used in the implementation
-for reasons of performance, compile-ability, and computability.
-The PyNE implementation generally aims to reduce the number of 
-chains and terms that are calculated when they can be shown to be 
-redundant or insignificant to the total calculation. In specific, the 
-following modeling assumptions have been made:
-
-
-In principle, each of these statements is reasonable. However, they may 
-have covariant effects that inject unreasonable errors into the system.
-To ensure that this is not the case for the assumptions above, 
-a preliminary benchmark study was performed \cite{benchmark}. This benchmark 
-compared
-the results of running ORIGEN v2.2 \cite{croff1980origen2} to the results of 
-the binary formulation. This study compared 2811 cases for a wide spread of
-nuclides over 0.01, 0.1, 1.0, 10, 100 times the half-life of the nuclide.
-In the overwhelming majority of cases, the relative errors were found to be 
-within acceptable bounds. 
-Take $x$ as the mass of a species in a material 
-after decay in the binary formulation, and $y$ as the mass of the same species
-decayed via ORIGEN, then the relative error $\epsilon$ is computed as:
-\begin{equation}
-\epsilon = \frac{2 \cdot |x - y|}{x + y}
-\end{equation}
-For a given nuclide to pass the decay benchmark here, 
-the species present in the decayed result must meet the following criteria:
-\begin{enumerate}
-    \item The highest relative error of any species in the decay result is
-          less than 1\%, or
-
-    \item If the species has a relative error greater than 1\%, then the 
-          decayed mass of the species multiplied by the relative error
-          (the mass-weighted relative error) is less than 10\%.
-\end{enumerate}
-  
-For cases that did demonstrate significant differences in the benchmark, 
-the differences could all be traced back to discrepancies in the underling 
-data. Since the PyNE binary formulation uses more recent ENSDF decay 
-data \cite{bhat1992evaluated} and computes more decay chains than ORIGEN, 
-it is reasonable to assume that these discrepancies are not the fault of the 
-binary formulation or the implementation assumptions.
-
-It is also important to mention that these implementation assumptions 
-may preclude desired behavior by users. For example, perhaps alpha decay 
-should be considered He-4 production. This would bring the implementation in
-line with the same feature in ORIGEN v2.2. In such a situation, these 
-assumptions should be revisited and the implementation should be reworked.
-
-\section{Comparison to ORIGEN implementation}
-
-The implementation of decay calculations in ORIGEN follows a fundamentally 
-different strategy from the one described above. It uses Taylor series expansion 
-of the exponential decay to make the problem tractable
-and then uses run-time branches to make a set of further approximations similar
-to those described above. This is due to both the increased scope of the 
-problem being solved, transmutation and decay, as well as the design which
-treats the decay data and the algorithm as two separate entities. The 
-combination of modern computational tools, allowing for efficient generation of 
-code, and the existing PyNE decay data interface, with rapid access to up-to-date ENSDF
-decay data, enable a merging of the two components and a reduction in computational
-cost at run-time with a manageable computation cost at compile (less than 30 seconds on
-a modern laptop). 
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\section{Conclusions \& Future Work}
-
-Many different computational solutions to the Bateman equations have been 
-developed, but few have been focused on optimizing the solution for speed
-of implementation without significant approximation of the initial problem.
- The ability to have algorithmically 
-generated code makes it possible to generate a solution that is both 
-computationally efficient and that minimizes mathematical approximations. This 
-work demonstrates such an implementation and shows promising initial results
-in comparison to existing tools. It is also unique in that the code requires no
-run time access to nuclear data as it is all integrated into the compilation 
-process. This results in a single portable C++ file with header that can be 
-used in NFC tools for decay calculations. Future work will consist of a more 
-detailed benchmark
-comparison against existing tools and work to quantify the errors introduced by
-the approximations used and those due to other effects such as round-off errors. 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%\section{Acknowledgments}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\bibliographystyle{ans}
-\bibliography{bibliography}
-\end{document}
-
-\end{comment}
 
 \end{document}
 
