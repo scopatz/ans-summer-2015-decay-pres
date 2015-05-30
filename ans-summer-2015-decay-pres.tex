@@ -396,17 +396,18 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
     lead to an explosion of the total number of chains while contributing to 
     extraordinarily rare branches. For most species the relative error
     induced is $O(<10^{-8})$.  Relatively few and rare nuclides, such as Cm-250, 
-    have spontaneous fission branch greater than 5\%.
+    have spontaneous fission branch greater than 5\%. (Helps with 
+    \textbf{compilability}.)
 
     \vspace*{1em}
     Decay alphas are not treated as He-4 production.  This can lead to 
     errors that are less than 2\% of the total mass of all chains for a
-    nuclide.  
+    nuclide. (\textbf{computability})
 
     \vspace*{1em}
     To prevent other sources of floating point error, a nuclide is 
     determined to be stable when $\lambda_i < 10^{-16}$, rather than when 
-    $\lambda_i = 0.0$.
+    $\lambda_i = 0.0$. (\textbf{computability})
 
 
 \end{frame}
@@ -422,13 +423,15 @@ N_{\lambda_C \to 0}(t) = N_1(0) \left[1.0 + \sum_{i=1}^{C-1} \lim_{\lambda_C\to 
     calculation from species which do not significantly contribute to 
     end atom fractions. If the filtering causes there to be less than 
     two terms in the summation, then the filtering is turned off and all
-    terms are computed.
+    terms are computed. (\textbf{performance})
 
     \vspace*{1em}
     If a chain has any $\mathrm{NaN}$ decay constants, the chain is rejected.
+    (\textbf{computability})
 
     \vspace*{1em}
     If a chain has any infinite $k_i$ values, the chain is rejected.
+    (\textbf{computability})
 
 \end{frame}
 
